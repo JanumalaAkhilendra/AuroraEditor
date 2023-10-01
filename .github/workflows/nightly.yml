@@ -150,5 +150,5 @@ jobs:
 
           # Use curl to create the commit with the updated JSON file
           curl -H "Authorization: Bearer $PAT" -X PUT \
-            -d "{\"message\": \"$commit_message\", \"content\": \"$(base64 <<< $json_content)\", \"branch\": \"${{ github.ref }}\", \"sha\": \"$sha\", \"branch\": \"${{ github.ref }}\" \
+            -d "{\"message\": \"$commit_message\", \"content\": \"$(base64 <<< $json_content)\", \"branch\": \"${{ github.ref }}\", \"sha\": \"$sha\", \"branch\": \"${{ github.ref }}\" }" \
             "$api_url"
