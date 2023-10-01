@@ -104,7 +104,7 @@ jobs:
       - name: Create JSON File
         run: |
           # Create a JSON file with extracted information
-          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\"}" > update.json
+          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\"}" > app_info.json
 
       - name: Determine Target JSON File
         id: target_json
@@ -116,8 +116,8 @@ jobs:
             refs/heads/beta)
               echo "beta.json"
               ;;
-            refs/heads/testing/github-action)
-              echo "nigtly.json"
+            refs/heads/release)
+              echo "release.json"
               ;;
             *)
               echo "unknown.json"
@@ -125,11 +125,28 @@ jobs:
           esac
         shell: bash
 
-      - name: Commit Update Json to AuroraEditor Webiste Repo
+      - name: Get SHA of JSON file
+        id: get_sha
         env:
           PAT: ${{ secrets.PAT }}
         run: |
           target_file=$(cat ${{ steps.target_json.outputs.target_json }})
-          curl -H "Authorization: token $PAT" -X PUT \
-            -d "{\"message\": \"Update $target_file\", \"content\": \"$(base64 update.json)\", \"branch\": \"${{ github.ref }}\"}" \
-            https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/nightly.json
+         
+          SHA=$(curl -s -H "Authorization: Bearer $PAT" \
+                  -H "Accept: application/vnd.github.v3+json" \
+                  https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/$target_file | jq -r '.sha')
+          echo "::set-output name=sha::$SHA"
+
+      - name: Commit JSON File to Another Repository
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          target_file=$(cat ${{ steps.target_json.outputs.target_json }})
+          sha=$GITHUB_SHA
+          json_content=$(cat app_info.json)
+          commit_message="Update $target_file with SHA: $sha"
+
+          # Use curl to create the commit with the updated JSON file
+          curl -H "Authorization: Bearer $PAT" -X PUT \
+            -d "{\"message\": \"$commit_message\", \"content\": \"$(base64 <<< $json_content)\", \"branch\": \"${{ github.ref }}\", \"sha\": \"$sha\"}" \
+            https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/$target_file
