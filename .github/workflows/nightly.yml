@@ -102,6 +102,7 @@ jobs:
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
       - name: Extract Version Info and Calculate SHA-256
+        id: version_and_sha
         run: |
           # Get the version name (CFBundleShortVersionString)
           version_name=$(agvtool what-marketing-version -terse1)
@@ -113,12 +114,19 @@ jobs:
           echo "Version Code: $version_code"
           echo "sha256sum: $sha256sum"
 
-      - name: Create Update JSON File
+          echo "version_name=$version_name" >> $GITHUB_OUTPUT
+          echo "version_code=$version_code" >> $GITHUB_OUTPUT
+          echo "sha256sum=$sha256sum" >> $GITHUB_OUTPUT
+
+      - name: Create a Updated nightly.json File
         run: |
-          # Create a JSON file with extracted information
+          version_name=${{ steps.version_and_sha.outputs.version_name }}
+          version_code=${{ steps.version_and_sha.outputs.version_code }}
+          sha256sum=${{ steps.version_and_sha.outputs.sha256sum }}
+          
           echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\", \"url\": \"https://nightly.link/AuroraEditor/AuroraEditor/workflows/nightly/main/AuroraEditor_Nightly.zip\"\"}" > app_info.json
 
-      - name: Get SHA of JSON file
+      - name: Get SHA of nightly.json file
         id: get_sha
         env:
           PAT: ${{ secrets.BOT_TOKEN }}
@@ -144,7 +152,7 @@ jobs:
 
           echo "sha=$SHA" >> $GITHUB_OUTPUT
 
-      - name: Commit JSON File to auroraeditor.com Repository
+      - name: Commit Updated nightly.json to auroraeditor.com Repository
         env:
           PAT: ${{ secrets.BOT_TOKEN }}
         run: |
