@@ -101,7 +101,7 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
-      - name: Create JSON File
+      - name: Create Update JSON File
         run: |
           # Create a JSON file with extracted information
           echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\"}" > app_info.json
@@ -132,7 +132,7 @@ jobs:
     
           echo "::set-output name=sha::$SHA"
 
-      - name: Commit JSON File to Another Repository
+      - name: Commit JSON File to auroraeditor.com Repository
         env:
           PAT: ${{ secrets.PAT }}
         run: |
@@ -150,5 +150,5 @@ jobs:
 
           # Use curl to create the commit with the updated JSON file
           curl -H "Authorization: Bearer $PAT" -X PUT \
-            -d "{\"message\": \"$commit_message\", \"content\": \"$(base64 <<< $json_content)\", \"branch\": \"${{ github.ref }}\", \"sha\": \"$sha\"}" \
+            -d "{\"message\": \"$commit_message\", \"content\": \"$(base64 <<< $json_content)\", \"branch\": \"${{ github.ref }}\", \"sha\": \"$sha\", \"branch\": \"${{ github.ref }}\" \
             "$api_url"
