@@ -107,7 +107,7 @@ jobs:
           version_name=$(agvtool what-marketing-version -terse1)
           # Get the version code (CFBundleVersion)
           version_code=$(agvtool what-version -terse)
-          sha256sum=$(shasum -a 256 Aurora Editor 1.0.dmg | awk '{ print $1 }')
+          sha256sum=$(shasum -a 256 Aurora\ Editor\ 1.0.dmg | awk '{ print $1 }')
     
           echo "Version Name: $version_name"
           echo "Version Code: $version_code"
