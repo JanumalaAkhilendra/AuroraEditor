@@ -121,7 +121,7 @@ jobs:
       - name: Get SHA of JSON file
         id: get_sha
         env:
-          PAT: ${{ secrets.PAT }}
+          PAT: ${{ secrets.BOT_TOKEN }}
         run: |
           result=$(curl -s -H "Authorization: Bearer $PAT" \
             -H "Accept: application/vnd.github.v3+json" \
@@ -146,7 +146,7 @@ jobs:
 
       - name: Commit JSON File to auroraeditor.com Repository
         env:
-          PAT: ${{ secrets.PAT }}
+          PAT: ${{ secrets.BOT_TOKEN }}
         run: |
           sha=${{ steps.get_sha.outputs.sha }}
           json_content=$(cat app_info.json)
