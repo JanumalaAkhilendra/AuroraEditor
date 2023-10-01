@@ -116,7 +116,7 @@ jobs:
       - name: Create Update JSON File
         run: |
           # Create a JSON file with extracted information
-          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\", \"url\": \"url": "https://nightly.link/AuroraEditor/AuroraEditor/workflows/nightly/main/AuroraEditor_Nightly.zip"\"}" > app_info.json
+          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\", \"url\": \"https://nightly.link/AuroraEditor/AuroraEditor/workflows/nightly/main/AuroraEditor_Nightly.zip\"\"}" > app_info.json
 
       - name: Get SHA of JSON file
         id: get_sha
