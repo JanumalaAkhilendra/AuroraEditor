@@ -1,20 +1,21 @@
 name: Nightly Build of Aurora Editor
+
 on:
   push:
-     branches: [ development ]
+    branches:
+      - 'testing/github-action'
 
 jobs:
   build_nightly_editor:
-    if: github.repository_owner == 'AuroraEditor'
     runs-on: macos-12
-    timeout-minutes: 30 # If a build exceeds 430 mins, it probably isn't ever going to complete
+    timeout-minutes: 30 # If a build exceeds 30 mins, it probably isn't ever going to complete
     steps:
       - uses: actions/checkout@v3
       
       - name: "Select Xcode 14.0"
         run: sudo xcode-select -s /Applications/Xcode_14.0.app
         
-        ### Certs
+      ### Certs
       - name: "Import Certificate: Development"
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.DEVELOPMENT_CERTIFICATE_DATA }}
@@ -99,3 +100,36 @@ jobs:
         if: ${{ always() }}
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+
+      - name: Create JSON File
+        run: |
+          # Create a JSON file with extracted information
+          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\"}" > update.json
+
+      - name: Determine Target JSON File
+        id: target_json
+        run: |
+          case "${{ github.ref }}" in
+            refs/heads/main)
+              echo "release.json"
+              ;;
+            refs/heads/beta)
+              echo "beta.json"
+              ;;
+            refs/heads/testing/github-action)
+              echo "nigtly.json"
+              ;;
+            *)
+              echo "unknown.json"
+              ;;
+          esac
+        shell: bash
+
+      - name: Commit Update Json to AuroraEditor Webiste Repo
+        env:
+          PAT: ${{ secrets.GITHUB_PAT }}
+        run: |
+          target_file=$(cat ${{ steps.target_json.outputs.target_json }})
+          curl -H "Authorization: token $PAT" -X PUT \
+            -d "{\"message\": \"Update $target_file\", \"content\": \"$(base64 update.json)\", \"branch\": \"${{ github.ref }}\"}" \
+            https://api.github.com/repos/AuroraEditor/your-other-repo/contents/path/to/$target_file
