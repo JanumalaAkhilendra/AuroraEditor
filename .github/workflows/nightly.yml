@@ -101,10 +101,22 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
+      - name: Extract Version Info and Calculate SHA-256
+        run: |
+          # Get the version name (CFBundleShortVersionString)
+          version_name=$(agvtool what-marketing-version -terse1)
+          # Get the version code (CFBundleVersion)
+          version_code=$(agvtool what-version -terse)
+          sha256sum=$(shasum -a 256 Aurora Editor 1.0.dmg | awk '{ print $1 }')
+    
+          echo "Version Name: $version_name"
+          echo "Version Code: $version_code"
+          echo "sha256sum: $sha256sum"
+
       - name: Create Update JSON File
         run: |
           # Create a JSON file with extracted information
-          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\"}" > app_info.json
+          echo "{\"versionCode\": \"$version_code\", \"versionName\": \"$version_name\", \"sha256sum\": \"$sha256sum\", \"url\": \"url": "https://nightly.link/AuroraEditor/AuroraEditor/workflows/nightly/main/AuroraEditor_Nightly.zip"\"}" > app_info.json
 
       - name: Get SHA of JSON file
         id: get_sha
