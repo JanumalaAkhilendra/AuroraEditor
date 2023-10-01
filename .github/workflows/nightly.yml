@@ -127,9 +127,9 @@ jobs:
 
       - name: Commit Update Json to AuroraEditor Webiste Repo
         env:
-          PAT: ${{ secrets.GITHUB_PAT }}
+          PAT: ${{ secrets.PAT }}
         run: |
           target_file=$(cat ${{ steps.target_json.outputs.target_json }})
           curl -H "Authorization: token $PAT" -X PUT \
             -d "{\"message\": \"Update $target_file\", \"content\": \"$(base64 update.json)\", \"branch\": \"${{ github.ref }}\"}" \
-            https://api.github.com/repos/AuroraEditor/your-other-repo/contents/path/to/$target_file
+            https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/nightly.json
