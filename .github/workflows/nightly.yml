@@ -110,9 +110,6 @@ jobs:
         id: target_json
         run: |
           case "${{ github.ref }}" in
-            refs/heads/main)
-              echo "release.json"
-              ;;
             refs/heads/beta)
               echo "beta.json"
               ;;
@@ -120,7 +117,7 @@ jobs:
               echo "release.json"
               ;;
             *)
-              echo "unknown.json"
+              echo "nightly.json"
               ;;
           esac
         shell: bash
@@ -131,10 +128,28 @@ jobs:
           PAT: ${{ secrets.PAT }}
         run: |
           target_file=$(cat ${{ steps.target_json.outputs.target_json }})
-         
-          SHA=$(curl -s -H "Authorization: Bearer $PAT" \
-                  -H "Accept: application/vnd.github.v3+json" \
-                  https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/$target_file | jq -r '.sha')
+   
+          # Use curl to fetch the content and capture stdout and stderr
+          result=$(curl -s -H "Authorization: Bearer $PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/$target_file 2>&1)
+    
+          # Check for errors and log stderr
+          if [ $? -ne 0 ]; then
+            echo "Error occurred during curl request:"
+            echo "$result"
+            exit 1
+          fi
+    
+          # Extract SHA from the JSON response
+          SHA=$(echo "$result" | jq -r '.sha')
+    
+          # Log the SHA and stderr
+          echo "SHA: $SHA"
+          echo "Curl Output:"
+          echo "$result"
+          echo "$target_file"
+    
           echo "::set-output name=sha::$SHA"
 
       - name: Commit JSON File to Another Repository
@@ -145,8 +160,17 @@ jobs:
           sha=$GITHUB_SHA
           json_content=$(cat app_info.json)
           commit_message="Update $target_file with SHA: $sha"
+    
+          # Define the API URL
+          api_url="https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/$target_file"
+
+          # Log the URL, path, and content being sent
+          echo "URL: $api_url"
+          echo "Path: $target_file"
+          echo "Content:"
+          echo "$json_content"
 
           # Use curl to create the commit with the updated JSON file
           curl -H "Authorization: Bearer $PAT" -X PUT \
             -d "{\"message\": \"$commit_message\", \"content\": \"$(base64 <<< $json_content)\", \"branch\": \"${{ github.ref }}\", \"sha\": \"$sha\"}" \
-            https://api.github.com/repos/AuroraEditor/auroraeditor.com/contents/public/updates/dynamic/macos/$target_file
+            "$api_url"
