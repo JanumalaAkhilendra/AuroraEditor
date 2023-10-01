@@ -141,8 +141,8 @@ jobs:
           echo "SHA: $SHA"
           echo "Curl Output:"
           echo "$result"
-    
-          echo "::set-output name=sha::$SHA"
+
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
 
       - name: Commit JSON File to auroraeditor.com Repository
         env:
