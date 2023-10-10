@@ -1,7 +1,7 @@
 name: Nightly Build of Aurora Editor
 on:
   push:
-     branches: [ testing/github-action ]
+    branches: [testing/github-action]
 
 jobs:
   build_nightly_editor:
@@ -9,18 +9,18 @@ jobs:
     runs-on: macos-12
     timeout-minutes: 30
     steps:
-      - name: 'Cleanup build folder'
+      - name: "Cleanup build folder"
         run: |
           ls -la ./
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
-        
+
       - uses: actions/checkout@v3
-      
+
       - name: "Select Xcode 14.0"
         run: sudo xcode-select -s /Applications/Xcode_14.0.app
-        
+
         ### Certs
       - name: "Import Certificate: Development"
         env:
@@ -40,7 +40,7 @@ jobs:
           # import certificate to keychain
           security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
-      
+
       - name: "Import Certificate: Distribution"
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.DISTRIBUTION_CERTIFICATE_DATA }}
@@ -76,19 +76,19 @@ jobs:
           # Calculate the new version number based on SemVer
           current_version=$(agvtool what-marketing-version -terse1)
           IFS='.' read -r -a version_parts <<< "$current_version"
-    
+
           # Increment the version components based on commit messages
           new_major=${version_parts[0]}
           new_minor=${version_parts[1]}
           new_patch=${version_parts[2]}
 
           echo "New version: $new_major.$new_minor.$new_patch"
-    
+
           # Get the list of commit messages since the last version
           commit_messages=$(git log --oneline --format="%s")
 
-          version_name=""
-    
+          version_name="V$new_major.$new_minor.$new_patch"  # Initialize with default value
+
           # Check commit messages for keywords
           if echo "$commit_messages" | grep -q "breaking"; then
             ((new_major++))
@@ -99,11 +99,10 @@ jobs:
             ((new_minor++))
             new_patch=0
             version_name="V$new_major.$new_minor"
-          else
+            elif echo "$commit_messages" | grep -q "bug"; then
             ((new_patch++))
-            version_name="V$new_major.$new_minor.$new_patch"
           fi
-    
+
           # Generate the new version number
           new_version="$new_major.$new_minor.$new_patch"
 
@@ -111,7 +110,7 @@ jobs:
             agvtool new-marketing-version "$new_version"
             echo "New version: $new_version"
             echo "Version name: $version_name"
-           else
+          else
             agvtool new-marketing-version "$current_version"
             echo "Invalid new version, falling back to the old version: $current_version"
             echo "Version name: $version_name"
