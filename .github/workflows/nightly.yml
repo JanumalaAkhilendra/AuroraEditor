@@ -70,10 +70,14 @@ jobs:
           current_version=$(agvtool what-version -terse)
           IFS='.' read -r -a version_parts <<< "$current_version"
 
-          # Increment the version components based on commit messages
+          # Initialize default values for new_minor and new_patch
+          default_minor=0
+          default_patch=0
+
+          # Assign values from version_parts or use default values if they don't exist
           new_major=${version_parts[0]}
-          new_minor=${version_parts[1]}
-          new_patch=${version_parts[2]}
+          new_minor=${version_parts[1]:-$default_minor}
+          new_patch=${version_parts[2]:-$default_patch}
 
           echo "Current version: $new_major.$new_minor.$new_patch"
 
