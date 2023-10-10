@@ -1,7 +1,7 @@
 name: Nightly Build of Aurora Editor
 on:
   push:
-     branches: [ github-action ]
+     branches: [ testing/github-action ]
 
 jobs:
   build_nightly_editor:
