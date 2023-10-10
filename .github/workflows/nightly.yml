@@ -85,9 +85,9 @@ jobs:
           echo "New version: $new_major.$new_minor.$new_patch"
     
           # Get the list of commit messages since the last version
-          commit_messages=$(git log --oneline $(git describe --tags --abbrev=0)..HEAD --format="%s")
+          commit_messages=$(git log --oneline --format="%s")
 
-          version_name="V1.0.0"
+          version_name=""
     
           # Check commit messages for keywords
           if echo "$commit_messages" | grep -q "breaking"; then
