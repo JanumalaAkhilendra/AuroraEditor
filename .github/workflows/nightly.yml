@@ -9,13 +9,6 @@ jobs:
     runs-on: macos-12
     timeout-minutes: 30
     steps:
-      - name: "Cleanup build folder"
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
-
       - uses: actions/checkout@v3
 
       - name: "Select Xcode 14.0"
@@ -74,7 +67,7 @@ jobs:
       - name: "Update version number"
         run: |
           # Calculate the new version number based on SemVer
-          current_version=$(agvtool what-marketing-version -terse1)
+          current_version=$(agvtool what-version -terse)
           IFS='.' read -r -a version_parts <<< "$current_version"
 
           # Increment the version components based on commit messages
@@ -82,7 +75,7 @@ jobs:
           new_minor=${version_parts[1]}
           new_patch=${version_parts[2]}
 
-          echo "New version: $new_major.$new_minor.$new_patch"
+          echo "Current version: $new_major.$new_minor.$new_patch"
 
           # Get the list of commit messages since the last version
           commit_messages=$(git log --oneline --format="%s")
@@ -99,7 +92,7 @@ jobs:
             ((new_minor++))
             new_patch=0
             version_name="V$new_major.$new_minor"
-            elif echo "$commit_messages" | grep -q "bug"; then
+          else
             ((new_patch++))
           fi
 
@@ -107,11 +100,11 @@ jobs:
           new_version="$new_major.$new_minor.$new_patch"
 
           if [[ $new_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            agvtool new-marketing-version "$new_version"
+            agvtool new-version -all "$new_version"
             echo "New version: $new_version"
             echo "Version name: $version_name"
           else
-            agvtool new-marketing-version "$current_version"
+            agvtool new-version -all "$current_version"
             echo "Invalid new version, falling back to the old version: $current_version"
             echo "Version name: $version_name"
           fi
